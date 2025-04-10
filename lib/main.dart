@@ -3,11 +3,22 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/splash_screen.dart';
+import 'dart:io';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   // Garantir que o Flutter está inicializado
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  HttpOverrides.global = MyHttpOverrides();
+  runApp(const MyApp());
+}
+
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -25,8 +36,17 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
+        // Adicione as configurações de localização
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('pt', 'BR'), // Português Brasil
+        ],
         // Use uma abordagem mais simples - inicie com SplashScreen
-        home: SplashScreenWrapper(),
+        home: const SplashScreenWrapper(),
       ),
     );
   }

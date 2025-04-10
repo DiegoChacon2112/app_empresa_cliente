@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +35,7 @@ class SplashScreen extends StatelessWidget {
               },
             ),
             
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             
             Text(
               'Área do Cliente MVK',
@@ -44,13 +46,13 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             
             CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
             ),
             
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             
             Text(
               'Carregando...',

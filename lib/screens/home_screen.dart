@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth/login_screen.dart';
+import 'order_query_screen.dart'; // Importe a tela de consulta de pedidos
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _nomeCliente = 'Portal do Cliente'; // Valor padrão
+
+  @override
+  void initState() {
+    super.initState();
+    _getNomeCliente();
+  }
+
+  Future<void> _getNomeCliente() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _nomeCliente = prefs.getString('nomeCliente') ?? 'Portal do Cliente';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Portal do Cliente'),
+        title: Text(_nomeCliente), // Exibir o nome do cliente
         actions: [
           IconButton(
             icon: const Icon(Icons.exit_to_app),
@@ -45,6 +67,12 @@ class HomeScreen extends StatelessWidget {
               'Veja o histórico de pedidos e status atual',
               Icons.shopping_cart,
               Colors.blue,
+              () { // Adicionado o callback para a navegação
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => OrderQueryScreen()),
+                );
+              },
             ),
             const SizedBox(height: 16),
             _buildFeatureCard(
@@ -53,6 +81,13 @@ class HomeScreen extends StatelessWidget {
               'Acesse suas notas fiscais',
               Icons.receipt,
               Colors.green,
+                  () { // Adicionado o callback para a navegação
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Funcionalidade em desenvolvimento'),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
             _buildFeatureCard(
@@ -61,14 +96,21 @@ class HomeScreen extends StatelessWidget {
               'Consulte pagamentos e faturas',
               Icons.account_balance_wallet,
               Colors.purple,
+                  () { // Adicionado o callback para a navegação
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Funcionalidade em desenvolvimento'),
+                  ),
+                );
+              },
             ),
           ],
         ),
       ),
     );
   }
-  
-  Widget _buildFeatureCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
+
+  Widget _buildFeatureCard(BuildContext context, String title, String subtitle, IconData icon, Color color, [VoidCallback? onTap]) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -89,13 +131,7 @@ class HomeScreen extends StatelessWidget {
         ),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Funcionalidade em desenvolvimento'),
-            ),
-          );
-        },
+        onTap: onTap, // Usar o callback para a navegação
       ),
     );
   }

@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../home_screen.dart';
-import 'first_access_screen.dart';  // Vamos criar esta tela a seguir
+import 'first_access_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -11,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _cnpjCpfController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -18,7 +24,73 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _cnpjCpfController.dispose();
     super.dispose();
+  }
+
+  Future<Map<String, dynamic>> authenticateUser(String email, String password, String cgc) async {
+    final url = Uri.parse('https://192.168.0.251:8409/rest/VKPCLILOGIN');
+    final basicAuth = 'Basic ${base64Encode(utf8.encode('admin:msmvk'))}';
+
+    final body = jsonEncode({
+      'email': email,
+      'Pass': password,
+      'cgc': cgc,
+    });
+
+    print('Enviando JSON: $body');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': basicAuth,
+        },
+        body: body,
+      ).timeout(const Duration(seconds: 10));
+
+      print('Resposta da API: ${response.statusCode} ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final jsonResponse = jsonDecode(response.body);
+
+          // Verificar se os campos existem e não são nulos
+          if (jsonResponse['sucess'] == true) {
+            final codigo = jsonResponse['Codigo']?.toString() ?? '';
+            final nome = jsonResponse['Nome']?.toString() ?? '';
+            final cgc = jsonResponse['cgc']?.toString() ?? '';
+            final email = jsonResponse['email']?.toString() ?? '';
+
+            return {
+              'sucess': true,
+              'Codigo': codigo,
+              'Nome': nome,
+              'cgc': cgc,
+              'email': email,
+            };
+          } else {
+            return {
+              'sucess': false,
+              'Codigo': jsonResponse['Codigo']?.toString() ?? 'Cliente não encontrado',
+              'Nome': jsonResponse['Nome']?.toString() ?? 'Cliente não encontrado',
+              'cgc': jsonResponse['cgc']?.toString() ?? 'Cliente não encontrado',
+              'email': jsonResponse['email']?.toString() ?? 'Cliente não encontrado',
+            };
+          }
+        } catch (e) {
+          print('Erro ao fazer o parsing do JSON: $e');
+          return {'sucess': false, 'Codigo': 'Erro ao fazer o parsing do JSON', 'Nome': 'Erro ao fazer o parsing do JSON', 'cgc': 'Erro ao fazer o parsing do JSON', 'email': 'Erro ao fazer o parsing do JSON'};
+        }
+      } else {
+        print('Erro na requisição: ${response.statusCode}');
+        return {'sucess': false, 'Codigo': 'Erro na requisição', 'Nome': 'Erro na requisição', 'cgc': 'Erro na requisição', 'email': 'Erro na requisição'};
+      }
+    } catch (e) {
+      print('Erro durante a requisição: $e');
+      return {'sucess': false, 'Codigo': 'Erro durante a requisição', 'Nome': 'Erro durante a requisição', 'cgc': 'Erro durante a requisição', 'email': 'Erro durante a requisição'};
+    }
   }
 
   Future<void> _login() async {
@@ -28,22 +100,40 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    // Simular um atraso de rede
-    await Future.delayed(Duration(seconds: 2));
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final cgc = _cnpjCpfController.text;
 
-    // Verificar credenciais simples
-    if (_emailController.text == 'teste@empresa.com' && 
-        _passwordController.text == '123456') {
-      // Login bem-sucedido - navegue para a tela principal
+    final result = await authenticateUser(email, password, cgc);
+
+    if (result['sucess'] == true) {
+      // Salvar TODOS os dados relevantes do usuário no SharedPreferences
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      
+      // Salvar o código do cliente (importante para a consulta de pedidos)
+      await prefs.setString('CodigoCliente', result['Codigo'] ?? '');
+      
+      // Salvar outros dados úteis
+      await prefs.setString('nomeCliente', result['Nome'] ?? '');
+      await prefs.setString('emailCliente', result['email'] ?? '');
+      await prefs.setString('cgcCliente', result['cgc'] ?? '');
+      
+      // Log para depuração
+      print('LOGIN BEM-SUCEDIDO: Código do cliente salvo: ${result['Codigo']}');
+      print('Dados salvos no SharedPreferences:');
+      print('- CodigoCliente: ${prefs.getString('CodigoCliente')}');
+      print('- nomeCliente: ${prefs.getString('nomeCliente')}');
+      
+      // Navegar para a tela principal
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => HomeScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
       // Login falhou
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Email ou senha incorretos'),
+          const SnackBar(
+            content: Text('Email, senha ou CNPJ/CPF incorretos'),
             backgroundColor: Colors.red,
           ),
         );
@@ -76,9 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(height: 40),
-                  
-                  // Título "Area do Cliente MVK"
+                  const SizedBox(height: 40),
                   Text(
                     'Área do Cliente MVK',
                     style: TextStyle(
@@ -88,15 +176,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
-                  SizedBox(height: 30),
-                  
-                  // Logo da empresa
+                  const SizedBox(height: 30),
                   Center(
                     child: Image.asset(
-                      'assets/images/logo_mvk.png',  // Substitua pelo nome do seu arquivo
+                      'assets/images/logo_mvk.png',
                       height: 120,
-                      // Se a imagem não existir durante o desenvolvimento, use um placeholder
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           height: 120,
@@ -116,17 +200,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                   ),
-                  
-                  SizedBox(height: 50),
-                  
-                  // Campo de Email
+                  const SizedBox(height: 50),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'Insira seu email',
-                      prefixIcon: Icon(Icons.email),
+                      prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -138,17 +219,33 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  
-                  SizedBox(height: 20),
-                  
-                  // Campo de Senha
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _cnpjCpfController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'CNPJ/CPF',
+                      hintText: 'Insira seu CNPJ/CPF',
+                      prefixIcon: const Icon(Icons.badge),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor, insira seu CNPJ/CPF';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: 'Senha',
                       hintText: 'Insira sua senha',
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility : Icons.visibility_off,
@@ -170,22 +267,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  
-                  SizedBox(height: 30),
-                  
-                  // Botão de Login
+                  const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                       backgroundColor: Colors.blue.shade700,
                     ),
                     child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
                             'ENTRAR',
                             style: TextStyle(
                               fontSize: 16,
@@ -193,10 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                   ),
-                  
-                  SizedBox(height: 20),
-                  
-                  // Link para primeiro acesso
+                  const SizedBox(height: 20),
                   InkWell(
                     onTap: _navigateToFirstAccess,
                     child: Padding(
@@ -212,20 +303,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  
-                  SizedBox(height: 20),
-                  
-                  // Botão para mostrar credenciais de teste (somente durante desenvolvimento)
+                  const SizedBox(height: 20),
                   TextButton(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Use: teste@empresa.com / 123456'),
                           duration: Duration(seconds: 5),
                         ),
                       );
                     },
-                    child: Text('Mostrar credenciais de teste'),
+                    child: const Text('Mostrar credenciais de teste'),
                   ),
                 ],
               ),

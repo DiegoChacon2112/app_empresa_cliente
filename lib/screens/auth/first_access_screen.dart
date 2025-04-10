@@ -4,6 +4,8 @@ import 'package:mailer/smtp_server.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class FirstAccessScreen extends StatefulWidget {
+  const FirstAccessScreen({super.key});
+
   @override
   _FirstAccessScreenState createState() => _FirstAccessScreenState();
 }
@@ -48,7 +50,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
     );
 
     final message = Message()
-      ..from = Address('portaldocliente@mvk.com.br', 'Portal do Cliente MVK')
+      ..from = const Address('portaldocliente@mvk.com.br', 'Portal do Cliente MVK')
       ..recipients.add('diego.chacon@mvk.com.br')
       ..subject = 'Nova solicitação de acesso - ${_razaoSocialController.text}'
       ..html = '''
@@ -103,7 +105,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
     
     if (!_termsAgreed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
             'Você precisa concordar com os termos para continuar.',
           ),
@@ -139,7 +141,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
           
           // Mostrar mensagem de sucesso
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text(
                 'Solicitação enviada com sucesso! Entraremos em contato em breve.',
               ),
@@ -149,7 +151,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
           );
 
           // Voltar para a tela de login após 2 segundos
-          Future.delayed(Duration(seconds: 2), () {
+          Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
               Navigator.of(context).pop();
             }
@@ -157,7 +159,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
         } else {
           // Mostrar mensagem de erro
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text(
                 'Erro ao enviar o email. Tente novamente mais tarde.',
               ),
@@ -174,7 +176,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
         });
         
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Erro ao enviar a solicitação. Tente novamente mais tarde.',
             ),
@@ -189,7 +191,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Solicitar Acesso'),
+        title: const Text('Solicitar Acesso'),
         backgroundColor: Colors.blue.shade700,
       ),
       body: SafeArea(
@@ -201,7 +203,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  const Text(
                     'Preencha os dados para solicitar seu acesso',
                     style: TextStyle(
                       fontSize: 18,
@@ -210,7 +212,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     textAlign: TextAlign.center,
                   ),
 
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
                   // Campo Razão Social
                   TextFormField(
@@ -218,7 +220,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     decoration: InputDecoration(
                       labelText: 'Razão Social',
                       hintText: 'Insira a razão social da empresa',
-                      prefixIcon: Icon(Icons.business),
+                      prefixIcon: const Icon(Icons.business),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -232,7 +234,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Campo CNPJ/CPF
                   TextFormField(
@@ -241,7 +243,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     decoration: InputDecoration(
                       labelText: 'CNPJ/CPF',
                       hintText: 'Insira o CNPJ ou CPF',
-                      prefixIcon: Icon(Icons.assignment_ind),
+                      prefixIcon: const Icon(Icons.assignment_ind),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -254,7 +256,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Campo Email
                   TextFormField(
@@ -263,7 +265,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     decoration: InputDecoration(
                       labelText: 'E-mail',
                       hintText: 'Insira seu email',
-                      prefixIcon: Icon(Icons.email),
+                      prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -279,7 +281,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Campo Nome Completo
                   TextFormField(
@@ -287,7 +289,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     decoration: InputDecoration(
                       labelText: 'Nome Completo',
                       hintText: 'Insira seu nome completo',
-                      prefixIcon: Icon(Icons.person),
+                      prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -304,7 +306,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Campo Telefone/Whatsapp
                   TextFormField(
@@ -314,7 +316,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     decoration: InputDecoration(
                       labelText: 'Telefone/Whatsapp',
                       hintText: '(00) 00000-0000',
-                      prefixIcon: Icon(Icons.phone),
+                      prefixIcon: const Icon(Icons.phone),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -330,7 +332,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     },
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Caixa de seleção de concordância com os termos
                   Container(
@@ -338,7 +340,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Text(
@@ -348,7 +350,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                             color: Colors.grey.shade700,
                           ),
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             Checkbox(
@@ -360,7 +362,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                               },
                               activeColor: Colors.blue.shade700,
                             ),
-                            Expanded(
+                            const Expanded(
                               child: Text(
                                 'Concordo com os termos acima',
                                 style: TextStyle(
@@ -374,13 +376,13 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                     ),
                   ),
 
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
                   // Botão de Enviar Solicitação
                   ElevatedButton(
                     onPressed: _isLoading || !_termsAgreed ? null : _submitRequest,
                     style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -388,7 +390,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                       disabledBackgroundColor: Colors.grey.shade400,
                     ),
                     child: _isLoading
-                        ? SizedBox(
+                        ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
@@ -396,7 +398,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                               strokeWidth: 3,
                             ),
                           )
-                        : Text(
+                        : const Text(
                             'ENVIAR SOLICITAÇÃO',
                             style: TextStyle(
                               fontSize: 16,
@@ -405,7 +407,7 @@ class _FirstAccessScreenState extends State<FirstAccessScreen> {
                           ),
                   ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Texto explicativo
                   Text(
